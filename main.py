@@ -2,7 +2,8 @@ import sys
 from PyQt6.QtGui import QIcon, QAction
 from PyQt6.QtWidgets import QApplication, QMenu, QSystemTrayIcon
 # Import state handlers and the initialization function from our state management module
-from states.states import handle_wake, handle_sleep, init_states
+from states.states import handle_wake, handle_sleep, init_states, state_thread
+from core.executor import Executor
 
 # Initialize the core application object. sys.argv allows PyQt to process any command-line arguments 
 # passed when the script is executed. Every PyQt application must have exactly one QApplication instance 
@@ -19,6 +20,18 @@ app.setQuitOnLastWindowClosed(False)
 # for JOSEPHINE when she is running in the background, allowing the user to right-click the icon 
 # and interact with her states directly.
 menu = QMenu()
+
+executor = Executor()  # Create an instance of the Executor class to handle core functionalities
+
+open_app_action = QAction("Open App")
+open_app_action.triggered.connect(executor.open_app)  # Connect the action to the open_app method of the Executor instance
+open_app_action.setVisible(False)
+menu.addAction(open_app_action)  # Add the "Open App" action to the context
+
+open_app_separator = menu.addSeparator()
+open_app_separator.setVisible(False)
+state_thread.state_changed.connect(open_app_action.setVisible)
+state_thread.state_changed.connect(open_app_separator.setVisible)
 
 # Create the "Wake Up" action. QAction represents a command that can be added to menus or toolbars.
 # We then connect its 'triggered' signal to our handle_wake function, meaning that clicking this 
